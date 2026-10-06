@@ -15,6 +15,8 @@ public class PlayerController : MonoBehaviour
     private bool jumpRequested;
     private bool isGrounded;
 
+    public bool IsGrounded => isGrounded;
+
     public float moveSpeed = 5f;
     public float jumpForce = 10f;
 
@@ -47,12 +49,12 @@ public class PlayerController : MonoBehaviour
         if (Keyboard.current.dKey.isPressed)
         {
             moveInput = 1f;
-            spriteRenderer.flipY = false;
+            spriteRenderer.flipX = false;
         }
         else if (Keyboard.current.aKey.isPressed)
         {
             moveInput = -1f;
-            spriteRenderer.flipY = true;
+            spriteRenderer.flipX = true;
         }
         else
         {
