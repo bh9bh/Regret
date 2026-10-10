@@ -21,10 +21,10 @@ public class PastPlayerRecorder : MonoBehaviour
     int recordedCount = 0;
 
     float recordTimer = 0f;
+    bool isRecording = false;
 
     [SerializeField]
     private float recordInterval = 0.05f;
-
     [SerializeField]
     private float recordDuration = 3f;
 
@@ -33,8 +33,12 @@ public class PastPlayerRecorder : MonoBehaviour
 
     public Transform pastPlayer;
     public Rigidbody2D pastPlayerRb;
+    public Collider2D playerCollider;
+    public Collider2D pastPlayerCollider;
 
     bool isPlayingBack = false;
+
+    public bool IsPlayingBack => isPlayingBack;
 
     void Start()
     {
@@ -47,15 +51,37 @@ public class PastPlayerRecorder : MonoBehaviour
 
     void Update()
     {
-        recordTimer += Time.deltaTime;
-
-        if (recordTimer >= recordInterval)
+        if (isRecording && !isPlayingBack)
         {
-            RecordState();
-            recordTimer = 0f;
+            recordTimer += Time.deltaTime;
+
+            if (recordTimer >= recordInterval)
+            {
+                RecordState();
+                recordTimer = 0f;
+            }
+
+            if (recordedCount >= recordedStates.Length)
+            {
+                StopRecording();
+            }
         }
 
-        if (Keyboard.current.pKey.wasPressedThisFrame)
+        if (Keyboard.current.rKey.wasPressedThisFrame)
+        {
+            if (isRecording)
+            {
+                StopRecording();
+            }
+            else if (!isPlayingBack)
+            {
+                StartRecording();
+            }
+        }
+
+        if (Keyboard.current.pKey.wasPressedThisFrame
+            && !isRecording
+            && !isPlayingBack)
         {
             StartPlayback();
         }
@@ -77,9 +103,29 @@ public class PastPlayerRecorder : MonoBehaviour
                 {
                     isPlayingBack = false;
                     pastPlayerRb.linearVelocity = Vector2.zero;
+
+                    SetPlayerCollisionIgnored(false);
                 }
             }
         }
+    }
+
+    void StartRecording()
+    {
+        writeIndex = 0;
+        recordedCount = 0;
+        recordTimer = 0f;
+
+        isRecording = true;
+
+        Debug.Log("Recording Started");
+    }
+
+    void StopRecording()
+    {
+        isRecording = false;
+
+        Debug.Log("Recording Stopped. States: " + recordedCount);
     }
 
     void RecordState()
@@ -127,7 +173,7 @@ public class PastPlayerRecorder : MonoBehaviour
 
     public void StartPlayback()
     {
-        if (recordedCount <= 0)
+        if (recordedCount <= 0 || isPlayingBack)
         {
             return;
         }
@@ -150,5 +196,15 @@ public class PastPlayerRecorder : MonoBehaviour
         playbackIndex = 0;
         playbackTimer = 0f;
         isPlayingBack = true;
+        SetPlayerCollisionIgnored(true);
+    }
+
+    void SetPlayerCollisionIgnored(bool ignored)
+    {
+        Physics2D.IgnoreCollision(
+            playerCollider,
+            pastPlayerCollider,
+            ignored
+        );
     }
 }
